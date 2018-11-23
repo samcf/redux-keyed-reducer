@@ -2,12 +2,16 @@
   "name": "redux-keyed-reducer",
   "version": "0.0.2-0",
   "description": "Maintain multiple instances of the same Redux reducer",
-  "main": "index.ts",
+  "main": "lib/index.js",
   "scripts": {
+    "prepare": "tsc && tape lib/**.test.js",
     "test": "tsc && tape lib/**.test.js"
   },
   "keywords": [
     "redux"
+  ],
+  "files": [
+    "lib"
   ],
   "author": "Samuel Ferrell <samcferrell@gmail.com>",
   "license": "MIT",
