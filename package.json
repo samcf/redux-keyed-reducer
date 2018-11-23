@@ -1,6 +1,6 @@
 {
   "name": "redux-keyed-reducer",
-  "version": "0.0.2-1",
+  "version": "0.0.2-2",
   "description": "Maintain multiple instances of the same Redux reducer",
   "main": "lib/index.js",
   "scripts": {
