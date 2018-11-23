@@ -11,7 +11,7 @@
     "redux"
   ],
   "files": [
-    "lib"
+    "lib/index.js"
   ],
   "author": "Samuel Ferrell <samcferrell@gmail.com>",
   "license": "MIT",
