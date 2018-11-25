@@ -4,6 +4,10 @@
   "description": "Maintain multiple instances of the same Redux reducer",
   "main": "lib/index.js",
   "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "https://git.sr.ht/~samcf/redux-keyed-reducer"
+  },
   "scripts": {
     "prepare": "tsc && tape lib/**.test.js",
     "test": "tsc && tape lib/**.test.js"
