@@ -5,7 +5,7 @@ const {
     bindKeyedActions,
     createKeyedReducer,
     lateBindKeyedActions,
-} = require("./index");
+} = require("./lib/index");
 
 const incrementer = (state = 0, action) => {
     switch (action.type) {
