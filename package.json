@@ -3,6 +3,7 @@
   "version": "0.0.2-3",
   "description": "Maintain multiple instances of the same Redux reducer",
   "main": "lib/index.js",
+  "sideEffects": false,
   "scripts": {
     "prepare": "tsc && tape lib/**.test.js",
     "test": "tsc && tape lib/**.test.js"
