@@ -10,8 +10,8 @@
     "url": "https://git.sr.ht/~samcf/redux-keyed-reducer"
   },
   "scripts": {
-    "prepare": "tsc && npm run-script test",
-    "test": "tape **.test.js"
+    "prepare": "npm run-script test",
+    "test": "tsc && tape **.test.js"
   },
   "keywords": [
     "redux"
