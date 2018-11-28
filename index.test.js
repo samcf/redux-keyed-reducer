@@ -1,11 +1,7 @@
 const test = require("tape");
-const { createStore, applyMiddleware } = require("redux");
 const thunk = require("redux-thunk").default;
-const {
-    bindKeyedActions,
-    createKeyedReducer,
-    lateBindKeyedActions,
-} = require("./lib/index");
+const { createStore, applyMiddleware } = require("redux");
+const { createKeyedDispatch, bindKeyedActions, createKeyedReducer } = require("./lib/index");
 
 const incrementer = (state = 0, action) => {
     switch (action.type) {
@@ -107,17 +103,10 @@ test("dispatching keyed actions creates a new keyed reducer instance", assert =>
 
 test("dispatching unkeyed actions runs against every instance of a keyed reducer", assert => {
     const store = createStore(createKeyedReducer(incrementer, "counter"));
-    const actions = lateBindKeyedActions({
-        onIncrement: {
-            action: () => ({ type: "increment" }),
-            storeKey: "counter"
-        }
-    }, store.dispatch);
-
-    actions.onIncrement("foo")();
-    actions.onIncrement("foo")();
-    actions.onIncrement("bar")();
-    actions.onIncrement("baz")();
+    createKeyedDispatch(store.dispatch, { counter: "foo" })({ type: "increment" });
+    createKeyedDispatch(store.dispatch, { counter: "foo" })({ type: "increment" });
+    createKeyedDispatch(store.dispatch, { counter: "bar" })({ type: "increment" });
+    createKeyedDispatch(store.dispatch, { counter: "baz" })({ type: "increment" });
     store.dispatch({ type: "increment" });
 
     assert.equals(store.getState()["foo"], 3, "the 'foo' instance is incremented three times");

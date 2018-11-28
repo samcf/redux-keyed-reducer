@@ -1,59 +1,51 @@
-import Redux, { bindActionCreators } from "redux";
-import Thunk from "redux-thunk";
+import { Action, ActionCreatorsMapObject, AnyAction, Dispatch, Reducer, bindActionCreators } from "redux";
+import { ThunkDispatch, ThunkAction } from "redux-thunk";
+
+interface KeyedState<T> {
+    [key: string]: T
+}
 
 interface StoreKeys {
     [key: string]: string,
 }
 
-interface Options {
+interface KeyedReducerOptions {
     isKeyRequired?: boolean,
 }
 
-interface LateBoundKeyedAction {
-    action: Redux.ActionCreator<any>,
-    storeKey: string,
-}
-
-interface LateBoundKeyedActions {
-    [key: string]: LateBoundKeyedAction,
-}
-
-interface KeyedState {
-    [key: string]: any
-}
-
-const sentinelAction: Redux.Action<"@@redux-keyed-reducer/sentinel-action"> = { type: "@@redux-keyed-reducer/sentinel-action" };
+const sentinelAction: Action<"@@ReduxKeyedReducer"> = { type: "@@ReduxKeyedReducer" };
 const defaultInstanceKey = "default";
-const initialState = {};
+const initialKeyedState = {};
 
-function bindKeyedAction(action: Redux.AnyAction, storeKeys: StoreKeys): Redux.AnyAction {
+function bindKeyedAction<A extends AnyAction>(action: A, storeKeys: StoreKeys): A {
     if (typeof action === 'function') {
         return action;
     }
 
-    const existingKeys = getStoreKeys(action);
-    const newStoreKeys = { ...existingKeys, ...storeKeys };
-    if (!("meta" in action)) {
-        action.meta = { storeKeys: newStoreKeys };
-    }
-
-    action.meta.storeKeys = newStoreKeys;
-    return action;
+    return (<any>Object).assign({}, action, {
+        meta: (<any>Object).assign({}, action.meta, {
+            storeKeys: (<any>Object).assign({}, getStoreKeys(action), storeKeys)
+        })
+    });
 }
 
-function createKeyedDispatch(dispatch: any, storeKeys: StoreKeys) {
-    return function keyedDispatch(action: any) {
+export function createKeyedDispatch<R, S, E, A extends Action>(
+    dispatch: ThunkDispatch<S, E, A>,
+    storeKeys: StoreKeys
+): ThunkDispatch<S, StoreKeys, A> {
+    return (action: A | ThunkAction<R, S, StoreKeys, A>) => {
         if (typeof action === "function") {
-            return dispatch(function (_: never, getState: any) {
-                return action(createKeyedDispatch(dispatch, storeKeys), getState, storeKeys);
-            });
+            const d = createKeyedDispatch<R, S, E, A>(dispatch, storeKeys);
+            const t = (_: Dispatch<A>, getState: () => S) =>
+                action(d, getState, storeKeys);
+            return dispatch(t);
         }
 
         return dispatch(bindKeyedAction(action, storeKeys));
-    }
+    };
 }
 
-export function getStoreKeys(action: Redux.AnyAction): StoreKeys {
+export function getStoreKeys(action: AnyAction): StoreKeys {
     if (!("meta" in action)) {
         return {};
     }
@@ -65,24 +57,19 @@ export function getStoreKeys(action: Redux.AnyAction): StoreKeys {
     return action.meta.storeKeys;
 }
 
-export function bindKeyedActions(actionCreators: Redux.ActionCreatorsMapObject, storeKeys: StoreKeys, dispatch: Redux.Dispatch) {
-    return bindActionCreators(actionCreators, createKeyedDispatch(dispatch, storeKeys));
+export function bindKeyedActions<S, E, A extends Action = AnyAction>(
+    actionCreators: ActionCreatorsMapObject<A>,
+    storeKeys: StoreKeys,
+    dispatch: ThunkDispatch<S, E, A>
+): ActionCreatorsMapObject<A> {
+    return bindActionCreators(actionCreators, <ThunkDispatch<S, E, A>>createKeyedDispatch(dispatch, storeKeys));
 }
 
-export function lateBindKeyedActions(lateBoundActionCreators: LateBoundKeyedActions, dispatch: any): Redux.ActionCreatorsMapObject {
-    const actionCreators: Redux.ActionCreatorsMapObject = {};
-    for (const key in lateBoundActionCreators) {
-        const { action, storeKey } = lateBoundActionCreators[key];
-        actionCreators[key] =
-            instanceName =>
-                (...args: any[]) =>
-                    createKeyedDispatch(dispatch, { [storeKey]: instanceName })(action(...args));
-    }
-
-    return actionCreators;
-}
-
-export function createKeyedReducer(reducer: Redux.Reducer, storeKey: string, options: Options = {}): Redux.Reducer {
+export function createKeyedReducer<S, A extends Action = AnyAction>(
+    reducer: Reducer<S, A>,
+    storeKey: string,
+    options: KeyedReducerOptions = {}
+): Reducer<KeyedState<S>, A> {
     if (!(typeof reducer === "function")) {
         throw new Error("Expected the first argument to be a function.");
     }
@@ -95,12 +82,12 @@ export function createKeyedReducer(reducer: Redux.Reducer, storeKey: string, opt
         throw new Error("Expected the second argument to be a non-empty string.");
     }
 
-    return function keyedReducer(state: KeyedState = initialState, action: Redux.Action): KeyedState {
+    return function keyedReducer(state = initialKeyedState, action: A): KeyedState<S> {
         const storeKeys = getStoreKeys(action);
-        const nextState = { ...state };
+        const nextState = (<any>Object).assign({}, state);
 
         if (!(defaultInstanceKey in nextState)) {
-            nextState[defaultInstanceKey] = reducer(undefined, sentinelAction);
+            nextState[defaultInstanceKey] = reducer(undefined, <A>sentinelAction);
         }
 
         if (storeKey in storeKeys) {
