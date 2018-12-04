@@ -62,7 +62,7 @@ export function bindKeyedActions<S, E, A extends Action = AnyAction>(
     storeKeys: StoreKeys,
     dispatch: ThunkDispatch<S, E, A>
 ): ActionCreatorsMapObject<A> {
-    return bindActionCreators(actionCreators, <ThunkDispatch<S, E, A>>createKeyedDispatch(dispatch, storeKeys));
+    return bindActionCreators(actionCreators, <ThunkDispatch<S, StoreKeys, A>>createKeyedDispatch(dispatch, storeKeys));
 }
 
 export function createKeyedReducer<S, A extends Action = AnyAction>(
