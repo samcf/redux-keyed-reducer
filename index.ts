@@ -1,39 +1,50 @@
-import { Action, ActionCreatorsMapObject, AnyAction, Dispatch, Reducer, bindActionCreators } from "redux";
-import { ThunkDispatch, ThunkAction } from "redux-thunk";
+import {
+    Action,
+    ActionCreatorsMapObject,
+    AnyAction,
+    bindActionCreators,
+    Dispatch,
+    Reducer,
+} from "redux";
 
-interface KeyedState<T> {
-    [key: string]: T
+import {
+    ThunkAction,
+    ThunkDispatch,
+} from "redux-thunk";
+
+interface IKeyedState<T> {
+    [key: string]: T;
 }
 
-interface StoreKeys {
-    [key: string]: string,
+interface IStoreKeys {
+    [key: string]: string;
 }
 
-interface KeyedReducerOptions {
-    isKeyRequired?: boolean,
+interface IKeyedReducerOptions {
+    isKeyRequired?: boolean;
 }
 
 const sentinelAction: Action<"@@ReduxKeyedReducer"> = { type: "@@ReduxKeyedReducer" };
 const defaultInstanceKey = "default";
 const initialKeyedState = {};
 
-function bindKeyedAction<A extends AnyAction>(action: A, storeKeys: StoreKeys): A {
-    if (typeof action === 'function') {
+function bindKeyedAction<A extends AnyAction>(action: A, storeKeys: IStoreKeys): A {
+    if (typeof action === "function") {
         return action;
     }
 
-    return (<any>Object).assign({}, action, {
-        meta: (<any>Object).assign({}, action.meta, {
-            storeKeys: (<any>Object).assign({}, getStoreKeys(action), storeKeys)
-        })
+    return (Object as any).assign({}, action, {
+        meta: (Object as any).assign({}, action.meta, {
+            storeKeys: (Object as any).assign({}, getStoreKeys(action), storeKeys),
+        }),
     });
 }
 
 export function createKeyedDispatch<R, S, E, A extends Action>(
     dispatch: ThunkDispatch<S, E, A>,
-    storeKeys: StoreKeys
-): ThunkDispatch<S, StoreKeys, A> {
-    return (action: A | ThunkAction<R, S, StoreKeys, A>) => {
+    storeKeys: IStoreKeys,
+): ThunkDispatch<S, IStoreKeys, A> {
+    return (action: A | ThunkAction<R, S, IStoreKeys, A>) => {
         if (typeof action === "function") {
             const d = createKeyedDispatch<R, S, E, A>(dispatch, storeKeys);
             const t = (_: Dispatch<A>, getState: () => S) =>
@@ -45,7 +56,7 @@ export function createKeyedDispatch<R, S, E, A extends Action>(
     };
 }
 
-export function getStoreKeys(action: AnyAction): StoreKeys {
+export function getStoreKeys(action: AnyAction): IStoreKeys {
     if (!("meta" in action)) {
         return {};
     }
@@ -59,17 +70,17 @@ export function getStoreKeys(action: AnyAction): StoreKeys {
 
 export function bindKeyedActions<S, E, A extends Action = AnyAction>(
     actionCreators: ActionCreatorsMapObject<A>,
-    storeKeys: StoreKeys,
-    dispatch: ThunkDispatch<S, E, A>
+    storeKeys: IStoreKeys,
+    dispatch: ThunkDispatch<S, E, A>,
 ): ActionCreatorsMapObject<A> {
-    return bindActionCreators(actionCreators, <ThunkDispatch<S, StoreKeys, A>>createKeyedDispatch(dispatch, storeKeys));
+    return bindActionCreators(actionCreators, createKeyedDispatch(dispatch, storeKeys));
 }
 
 export function createKeyedReducer<S, A extends Action = AnyAction>(
     reducer: Reducer<S, A>,
     storeKey: string,
-    options: KeyedReducerOptions = {}
-): Reducer<KeyedState<S>, A> {
+    options: IKeyedReducerOptions = {},
+): Reducer<IKeyedState<S>, A> {
     if (!(typeof reducer === "function")) {
         throw new Error("Expected the first argument to be a function.");
     }
@@ -82,12 +93,12 @@ export function createKeyedReducer<S, A extends Action = AnyAction>(
         throw new Error("Expected the second argument to be a non-empty string.");
     }
 
-    return function keyedReducer(state = initialKeyedState, action: A): KeyedState<S> {
+    return function keyedReducer(state = initialKeyedState, action: A): IKeyedState<S> {
         const storeKeys = getStoreKeys(action);
-        const nextState = (<any>Object).assign({}, state);
+        const nextState = (Object as any).assign({}, state);
 
         if (!(defaultInstanceKey in nextState)) {
-            nextState[defaultInstanceKey] = reducer(undefined, <A>sentinelAction);
+            nextState[defaultInstanceKey] = reducer(undefined, sentinelAction as A);
         }
 
         if (storeKey in storeKeys) {
@@ -109,5 +120,5 @@ export function createKeyedReducer<S, A extends Action = AnyAction>(
         }
 
         return nextState;
-    }
+    };
 }
