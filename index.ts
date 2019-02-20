@@ -12,15 +12,15 @@ import {
     ThunkDispatch,
 } from "redux-thunk";
 
-interface IKeyedState<T> {
+export interface IKeyedState<T> {
     [key: string]: T;
 }
 
-interface IStoreKeys {
+export interface IStoreKeys {
     [key: string]: string;
 }
 
-interface IKeyedReducerOptions {
+export interface IKeyedReducerOptions {
     isKeyRequired?: boolean;
 }
 
