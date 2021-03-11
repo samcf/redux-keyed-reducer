@@ -1,6 +1,6 @@
 {
     "name": "redux-keyed-reducer",
-    "author": "Samuel Ferrell <samcferrell@gmail.com>",
+    "author": "Sam Ferrell <maiL@samcf.me>",
     "description": "Maintain multiple instances of the same Redux reducer",
     "license": "MIT",
     "version": "0.1.1",
@@ -29,7 +29,7 @@
         "tape": "^4.9.1",
         "typescript": "^3.2.1"
     },
-    "dependencies": {
-        "redux": "^4.0.1"
+    "peerDependencies": {
+        "redux": "^4.0.5"
     }
 }
